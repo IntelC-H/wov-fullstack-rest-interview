@@ -1,0 +1,42 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./chinook.sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Track {
+  TrackId      Int      @id @default(autoincrement())
+  Name         String
+  AlbumId      Int?
+  MediaTypeId  Int
+  GenreId      Int?
+  Composer     String?
+  Milliseconds Int
+  Bytes        Int?
+  UnitPrice    Float
+  Genre        Genre?   @relation(fields: [GenreId], references: [GenreId])
+  Album        Album?   @relation(fields: [AlbumId], references: [AlbumId])
+}
+
+model Genre {
+  GenreId Int      @id @default(autoincrement())
+  Name    String
+  Tracks  Track[]
+}
+
+model Album {
+  AlbumId Int      @id @default(autoincrement())
+  Title   String
+  ArtistId Int
+  Tracks  Track[]
+  Artist  Artist   @relation(fields: [ArtistId], references: [ArtistId])
+}
+
+model Artist {
+  ArtistId Int      @id @default(autoincrement())
+  Name     String
+  Albums   Album[]
+}
