@@ -1,95 +1,96 @@
+"use client";
 import Image from 'next/image'
 import styles from './page.module.css'
+import { useState, useEffect } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+interface Track {
+    id: number;
+    name: string;
+    price: number;
+    duration: number;
+    genre: string;
+}
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+    const [tracks, setTracks] = useState<Track[]>([]);
+    const [page, setPage] = useState(0);
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+    useEffect(() => {
+        fetchTracks(page);
+    }, [page]);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    const fetchTracks = async (page: number) => {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}/tracks?page=${page}&pageSize=10`
+        );
+        const data: Track[] = await response.json();
+        setTracks((prev) => [...prev, ...data]);
+    };
+    return (
+        <main className={styles.main}>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+            <div className={styles.center}>
+                <Image
+                    className={styles.logo}
+                    src="/next.svg"
+                    alt="Next.js Logo"
+                    width={180}
+                    height={37}
+                    priority
+                />
+            </div>
+            <h1 className="text-2xl font-bold mb-6">Track List</h1>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+            <div className="w-full max-w-4xl border-y-8">
+                <Table className="table-auto w-full border-collapse">
+                    <TableHeader>
+                        <TableRow>
+                            {["ID", "Name", "Price ($)", "Duration (s)", "Genre"].map((header, index) => (
+                                <TableHead
+                                    key={index}
+                                    className={`px-4 py-2 ${
+                                        index % 2 === 0 ? "bg-gray-100" : "bg-gray-200"
+                                  }`}
+                                >
+                                    {header}
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {tracks.map((track, rowIndex) => (
+                            <TableRow
+                                key={track.id}
+                                className={`${
+                                    rowIndex % 2 === 0 ? "bg-gray-50" : "bg-gray-100"
+                                }`}
+                            >
+                                {Object.values(track).map((value, colIndex) => (
+                                    <TableCell
+                                        key={colIndex}
+                                        className={`px-4 py-2 ${
+                                            colIndex % 2 === 0 ? "bg-blue-50" : "bg-blue-100"
+                                        }`}
+                                    >
+                                        {typeof value === "number" && colIndex === 2
+                                            ? value.toFixed(2)
+                                            : value}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <button
+                onClick={() => setPage(page + 1)}
+                className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+                Load More
+            </button>
+        </main>
+    )
 }
